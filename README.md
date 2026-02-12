@@ -1,97 +1,236 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Chronicle
 
-# Getting Started
+A modern, full-featured **Task Tracker** mobile app built with **React Native** and a **Flask** backend. Chronicle helps you create, track, and manage tasks with scheduling, progress notes, AI-powered insights, smart reminders, and a beautiful dark/light theme.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## ✨ Features
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### 📋 Task Management
+- Create tasks with **title**, **description**, **start time**, and **finish by** deadline
+- Track tasks through statuses: **Pending → Active → Completed**
+- Auto-status logic: tasks become active at their start time, overdue if past the deadline
+- Filter tasks by status (All, Pending, Active, Done)
+- Pull-to-refresh task list
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### 📝 Progress Notes
+- Add timestamped progress notes to any task
+- Optionally mark a task as complete when adding a note
+- View full note history on the task detail screen
 
-```sh
-# Using npm
+### 🤖 AI-Powered Insights
+- **AI Recommendations** — Get task analysis with next steps, time estimates, and potential blockers (powered by **Gemini API**)
+- **AI Chat** — Chat with an AI assistant that has full context of your tasks for planning and productivity advice
+
+### 🔔 Smart Reminders
+- Enable "Remind me at start time" when creating a task
+- Set/cancel reminders from the task detail screen
+- Local push notifications fire at the scheduled start time
+- Customizable reminder sounds in profile settings
+
+### 👤 User Profile
+- Editable display name and avatar (emoji characters or photo upload)
+- Task statistics dashboard (Total, Active, Pending, Done)
+- Active and completed task history
+- **Reminder Sound picker** — choose from default sounds or upload from device
+
+### 🔐 Authentication
+- Email/Password sign up and sign in
+- Google Sign-In via Firebase
+- Persistent auth state across sessions
+
+### 🎨 Theming
+- Light and Dark mode with toggle
+- Persisted theme preference
+- Consistent black & white minimalist design
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Mobile App** | React Native 0.83.1 |
+| **Navigation** | React Navigation (Native Stack) |
+| **Auth** | Firebase Authentication + Google Sign-In |
+| **State** | React Context API |
+| **Storage** | AsyncStorage (theme, sound prefs) |
+| **Notifications** | @notifee/react-native |
+| **Backend** | Flask (Python) |
+| **AI** | Google Gemini API (gemini-2.5-flash) |
+| **HTTP Client** | Axios |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Node.js** ≥ 20
+- **Python** ≥ 3.8
+- **Android Studio** with SDK & emulator (or a physical device)
+- **React Native CLI** environment set up ([guide](https://reactnative.dev/docs/set-up-your-environment))
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/saikiran-1508/Chronicle.git
+cd Chronicle
+```
+
+### 2. Install Frontend Dependencies
+
+```bash
+npm install
+```
+
+### 3. Install Backend Dependencies
+
+```bash
+cd backend
+pip install -r requirements.txt
+cd ..
+```
+
+### 4. Configure Firebase
+
+1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+2. Enable **Email/Password** and **Google** sign-in methods
+3. Download `google-services.json` and place it in `android/app/`
+4. Update the `webClientId` in `src/context/AuthContext.js` with your Firebase project's Web client ID
+
+### 5. Configure Gemini API Key
+
+Set your Gemini API key in `backend/groq_service.py`:
+
+```python
+GEMINI_API_KEY = "your-api-key-here"
+```
+
+Or set it as an environment variable:
+
+```bash
+set GEMINI_API_KEY=your-api-key-here
+```
+
+Get a free key at [aistudio.google.com](https://aistudio.google.com/app/apikey).
+
+### 6. Start the Backend Server
+
+```bash
+cd backend
+python app.py
+```
+
+The API will be available at `http://localhost:5000`.
+
+### 7. Connect Device (Android)
+
+For a physical device connected via USB:
+
+```bash
+adb reverse tcp:5000 tcp:5000
+```
+
+### 8. Run the App
+
+```bash
+# Start Metro bundler
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+# In another terminal, build and run on Android
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### iOS
+---
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+## 📁 Project Structure
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```
+Chronicle/
+├── App.js                          # Root component — navigation setup, auth/theme providers
+├── index.js                        # App entry point
+├── package.json                    # Dependencies and scripts
+├── babel.config.js                 # Babel configuration
+├── metro.config.js                 # Metro bundler configuration
+├── app.json                        # App metadata
+│
+├── backend/                        # Flask API backend
+│   ├── app.py                      # REST API — tasks, notes, AI, chat, profile endpoints
+│   ├── groq_service.py             # Gemini AI integration for recommendations and chat
+│   └── requirements.txt            # Python dependencies (flask, flask-cors)
+│
+├── src/
+│   ├── components/                 # Reusable UI components
+│   │   ├── EmptyState.js           # Empty list placeholder
+│   │   ├── ErrorState.js           # Error display with retry button
+│   │   ├── LoadingState.js         # Loading spinner
+│   │   └── StatusBadge.js          # Task status badge (pending/active/completed)
+│   │
+│   ├── constants/                  # App-wide constants
+│   │   ├── colors.js               # Color palette
+│   │   ├── screens.js              # Screen name constants
+│   │   ├── index.js                # Constants barrel export
+│   │   └── reminderSounds.js       # Default reminder sound options
+│   │
+│   ├── context/                    # React Context providers
+│   │   ├── AuthContext.js          # Firebase auth state (sign in/up, Google, sign out)
+│   │   └── ThemeContext.js         # Light/dark theme with AsyncStorage persistence
+│   │
+│   ├── navigation/                 # Navigation config
+│   │   └── AppNavigator.js         # Stack navigator setup
+│   │
+│   ├── screens/                    # App screens
+│   │   ├── SignInScreen.js         # Email/password + Google sign in
+│   │   ├── SignUpScreen.js         # New account registration
+│   │   ├── TaskListScreen.js       # Main task list with filters and FAB
+│   │   ├── CreateTaskScreen.js     # New task form with scheduling and reminder toggle
+│   │   ├── TaskDetailScreen.js     # Task details, schedule, status actions, AI insights, notes
+│   │   ├── AddNoteScreen.js        # Add progress note to a task
+│   │   ├── ChatScreen.js           # AI chat assistant
+│   │   └── ProfileScreen.js        # User profile, stats, avatar picker, sound settings
+│   │
+│   ├── services/                   # API and service layer
+│   │   ├── api.js                  # Axios HTTP client for all backend endpoints
+│   │   └── ReminderService.js      # Local push notification scheduling and sound preferences
+│   │
+│   └── types/                      # TypeScript type definitions
+│       └── index.js                # Shared types
+│
+├── android/                        # Android native project
+└── ios/                            # iOS native project
 ```
 
-Then, and every time you update your native dependencies, run:
+---
 
-```sh
-bundle exec pod install
-```
+## 📡 API Endpoints
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/tasks` | List all tasks (optional `?status=` filter) |
+| `GET` | `/tasks/:id` | Get a single task |
+| `POST` | `/tasks` | Create a new task |
+| `PATCH` | `/tasks/:id` | Update a task |
+| `GET` | `/tasks/:id/notes` | List notes for a task |
+| `POST` | `/tasks/:id/notes` | Add a progress note |
+| `POST` | `/tasks/:id/ai-recommend` | Get AI recommendations |
+| `POST` | `/chat` | AI chat with task context |
+| `GET` | `/profile` | Get user profile with stats |
+| `POST` | `/profile` | Update profile (name, avatar, reminderSound) |
 
-```sh
-# Using npm
-npm run ios
+---
 
-# OR using Yarn
-yarn ios
-```
+## 📸 App Flow
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+1. **Sign In / Sign Up** → Firebase authentication
+2. **Task List** → View, filter, and manage all tasks
+3. **Create Task** → Set title, description, schedule, and reminder
+4. **Task Detail** → View progress, set reminders, get AI insights, add notes
+5. **AI Chat** → Get productivity advice with full task context
+6. **Profile** → Edit avatar, view stats, configure reminder sounds
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+---
 
-## Step 3: Modify your app
+## 📄 License
 
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+This project is private and not licensed for public distribution.

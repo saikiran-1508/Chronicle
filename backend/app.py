@@ -22,6 +22,7 @@ notes: dict[str, dict] = {}
 profile: dict = {
     "name": "User",
     "avatar": "😊",
+    "reminderSound": "default",
 }
 chat_history: list[dict] = []
 
@@ -358,6 +359,8 @@ def update_profile():
         profile["name"] = (data["name"] or "User").strip()
     if "avatar" in data:
         profile["avatar"] = data["avatar"] or "😊"
+    if "reminderSound" in data:
+        profile["reminderSound"] = data["reminderSound"] or "default"
 
     return jsonify(profile)
 

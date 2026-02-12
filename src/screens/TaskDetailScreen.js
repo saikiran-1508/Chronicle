@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { fetchTask, fetchNotes, fetchAIRecommendation, updateTask } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
+import { scheduleReminder, cancelReminder } from '../services/ReminderService';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import StatusBadge from '../components/StatusBadge';
@@ -33,6 +34,7 @@ const TaskDetailScreen = ({ route, navigation }) => {
     const [aiResult, setAiResult] = useState(null);
     const [showAiModal, setShowAiModal] = useState(false);
     const [statusUpdating, setStatusUpdating] = useState(false);
+    const [reminderSet, setReminderSet] = useState(false);
 
     const loadData = useCallback(async () => {
         try {
@@ -80,6 +82,23 @@ const TaskDetailScreen = ({ route, navigation }) => {
             Alert.alert('Error', 'Failed to update status.');
         } finally {
             setStatusUpdating(false);
+        }
+    };
+
+    const handleToggleReminder = async () => {
+        if (!task.startTime) return;
+        if (reminderSet) {
+            cancelReminder(task.id);
+            setReminderSet(false);
+            Alert.alert('Reminder Cancelled', 'The reminder for this task has been removed.');
+        } else {
+            const scheduled = await scheduleReminder(task.id, task.title, task.startTime);
+            if (scheduled) {
+                setReminderSet(true);
+                Alert.alert('Reminder Set', `You'll be notified at the task's start time.`);
+            } else {
+                Alert.alert('Cannot Set Reminder', 'The start time is in the past.');
+            }
         }
     };
 
@@ -140,6 +159,17 @@ const TaskDetailScreen = ({ route, navigation }) => {
                             <Text style={[styles.scheduleLabel, { color: isOverdue ? '#E53E3E' : colors.textMuted }]}>Finish by: </Text>
                             <Text style={[styles.scheduleValue, { color: isOverdue ? '#E53E3E' : colors.textSecondary }]}>{formatDateTime(task.finishBy)}</Text>
                         </View>
+                    )}
+                    {task.startTime && task.status !== 'completed' && (
+                        <TouchableOpacity
+                            style={[styles.reminderButton, { backgroundColor: reminderSet ? '#16A34A20' : colors.surface, borderColor: reminderSet ? '#16A34A' : colors.inputBorder }]}
+                            onPress={handleToggleReminder}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={[styles.reminderButtonText, { color: reminderSet ? '#16A34A' : colors.text }]}>
+                                {reminderSet ? '🔔 Reminder Set' : '🔔 Set Reminder'}
+                            </Text>
+                        </TouchableOpacity>
                     )}
                 </View>
             )}
@@ -266,6 +296,8 @@ const styles = StyleSheet.create({
     overdueTag: { fontSize: 11, fontWeight: '800', color: '#E53E3E', backgroundColor: '#FEE2E2', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, overflow: 'hidden' },
     scheduleCard: { borderRadius: 10, padding: 12, marginBottom: 14 },
     scheduleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+    reminderButton: { marginTop: 10, borderRadius: 8, paddingVertical: 10, alignItems: 'center', borderWidth: 1 },
+    reminderButtonText: { fontSize: 14, fontWeight: '600' },
     scheduleIcon: { fontSize: 14, marginRight: 6 },
     scheduleLabel: { fontSize: 13, fontWeight: '600' },
     scheduleValue: { fontSize: 13 },

@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { createTask } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
+import { scheduleReminder } from '../services/ReminderService';
 
 const CreateTaskScreen = ({ navigation }) => {
     const { colors, isDark } = useTheme();
@@ -26,6 +27,7 @@ const CreateTaskScreen = ({ navigation }) => {
     const [startDate, setStartDate] = useState('');
     const [startTime, setStartTime] = useState('');
     const [finishDate, setFinishDate] = useState('');
+    const [reminderEnabled, setReminderEnabled] = useState(false);
     const [finishTime, setFinishTime] = useState('');
 
     const handleSubmit = async () => {
@@ -46,13 +48,20 @@ const CreateTaskScreen = ({ navigation }) => {
                 const ft = finishTime || '23:59';
                 finishByISO = `${finishDate}T${ft}:00`;
             }
-            await createTask({
+            const newTask = await createTask({
                 title: trimmedTitle,
                 description: description.trim(),
                 status: 'pending',
                 startTime: startTimeISO,
                 finishBy: finishByISO,
+                reminderEnabled: reminderEnabled && !!startTimeISO,
             });
+
+            // Schedule local notification if reminder is enabled
+            if (reminderEnabled && startTimeISO) {
+                await scheduleReminder(newTask.id, trimmedTitle, startTimeISO);
+            }
+
             Alert.alert('Success', 'Task created!', [
                 { text: 'OK', onPress: () => navigation.goBack() },
             ]);
@@ -118,6 +127,27 @@ const CreateTaskScreen = ({ navigation }) => {
                 </View>
             </View>
 
+            {/* Reminder Toggle — only show when start date is entered */}
+            {startDate.length > 0 && (
+                <TouchableOpacity
+                    style={[styles.reminderRow, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}
+                    activeOpacity={0.7}
+                    onPress={() => setReminderEnabled(!reminderEnabled)}
+                >
+                    <View style={[
+                        styles.checkbox,
+                        { borderColor: colors.chevron },
+                        reminderEnabled && { backgroundColor: colors.buttonBg, borderColor: colors.buttonBg },
+                    ]}>
+                        {reminderEnabled && <Text style={[styles.checkmark, { color: colors.buttonText }]}>✓</Text>}
+                    </View>
+                    <View style={styles.reminderTextWrap}>
+                        <Text style={[styles.reminderLabel, { color: colors.text }]}>🔔 Remind me at start time</Text>
+                        <Text style={[styles.reminderHint, { color: colors.textPlaceholder }]}>Get a notification when it's time to begin</Text>
+                    </View>
+                </TouchableOpacity>
+            )}
+
             {/* Finish By Section */}
             <View style={[styles.scheduleSection, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
                 <Text style={[styles.scheduleTitle, { color: colors.text }]}>🏁 Finish by</Text>
@@ -176,6 +206,12 @@ const styles = StyleSheet.create({
     dateField: { flex: 3 },
     timeField: { flex: 2 },
     smallLabel: { fontSize: 12, fontWeight: '500', marginBottom: 4 },
+    reminderRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 16, marginTop: 16, borderWidth: 1 },
+    checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+    checkmark: { fontSize: 14, fontWeight: '700' },
+    reminderTextWrap: { flex: 1 },
+    reminderLabel: { fontSize: 15, fontWeight: '600' },
+    reminderHint: { fontSize: 12, marginTop: 2 },
     submitButton: { borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 28, elevation: 4 },
     submitButtonDisabled: { opacity: 0.6 },
     submitText: { fontSize: 16, fontWeight: '700' },

@@ -15,9 +15,12 @@ import {
     Image,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { pick } from 'react-native-document-picker';
 import { fetchProfile, updateProfile, fetchTasks } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { getSelectedSound, setSelectedSound, getCustomSoundUri, setCustomSoundUri } from '../services/ReminderService';
+import REMINDER_SOUNDS from '../constants/reminderSounds';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import StatusBadge from '../components/StatusBadge';
@@ -39,6 +42,11 @@ const ProfileScreen = ({ navigation }) => {
     const [editingName, setEditingName] = useState(false);
     const [nameInput, setNameInput] = useState('');
     const [photoUri, setPhotoUri] = useState(null);
+
+    // Sound settings
+    const [showSoundPicker, setShowSoundPicker] = useState(false);
+    const [selectedSoundKey, setSelectedSoundKey] = useState('default');
+    const [customSoundName, setCustomSoundName] = useState(null);
 
     const userEmail = user?.email || '';
 
@@ -65,6 +73,21 @@ const ProfileScreen = ({ navigation }) => {
         const unsub = navigation.addListener('focus', loadData);
         return unsub;
     }, [navigation, loadData]);
+
+    // Load saved sound preference
+    useEffect(() => {
+        (async () => {
+            const key = await getSelectedSound();
+            setSelectedSoundKey(key);
+            if (key === 'custom') {
+                const uri = await getCustomSoundUri();
+                if (uri) {
+                    const name = uri.split('/').pop() || 'Custom Sound';
+                    setCustomSoundName(name);
+                }
+            }
+        })();
+    }, []);
 
     const handleAvatarSelect = async (emoji) => {
         setShowAvatarPicker(false);
@@ -112,6 +135,34 @@ const ProfileScreen = ({ navigation }) => {
                 },
             },
         ]);
+    };
+
+    const handleSoundSelect = async (soundKey) => {
+        setSelectedSoundKey(soundKey);
+        await setSelectedSound(soundKey);
+        if (soundKey !== 'custom') {
+            setCustomSoundName(null);
+            setShowSoundPicker(false);
+        }
+    };
+
+    const handleUploadSound = async () => {
+        try {
+            const [result] = await pick({
+                type: ['audio/*'],
+            });
+            if (result && result.uri) {
+                await setCustomSoundUri(result.uri);
+                await setSelectedSound('custom');
+                setSelectedSoundKey('custom');
+                setCustomSoundName(result.name || 'Custom Sound');
+                setShowSoundPicker(false);
+            }
+        } catch (err) {
+            if (err && err.code !== 'DOCUMENT_PICKER_CANCELED') {
+                Alert.alert('Error', 'Could not pick audio file.');
+            }
+        }
     };
 
     if (loading) return <LoadingState message="Loading profile..." />;
@@ -201,6 +252,26 @@ const ProfileScreen = ({ navigation }) => {
                 <StatBox label="Done" value={stats.completed} />
             </View>
 
+            {/* Reminder Sound Section */}
+            <TouchableOpacity
+                style={[styles.soundSection, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+                activeOpacity={0.7}
+                onPress={() => setShowSoundPicker(true)}
+            >
+                <View style={styles.soundSectionRow}>
+                    <Text style={[styles.soundSectionIcon]}>🔔</Text>
+                    <View style={styles.soundSectionText}>
+                        <Text style={[styles.soundSectionTitle, { color: colors.text }]}>Reminder Sound</Text>
+                        <Text style={[styles.soundSectionValue, { color: colors.textMuted }]}>
+                            {selectedSoundKey === 'custom'
+                                ? customSoundName || 'Custom Sound'
+                                : (REMINDER_SOUNDS.find(s => s.key === selectedSoundKey)?.label || 'Default')}
+                        </Text>
+                    </View>
+                    <Text style={[styles.soundChevron, { color: colors.chevron }]}>›</Text>
+                </View>
+            </TouchableOpacity>
+
             {activeTasks.length > 0 && (
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>Active Tasks ({activeTasks.length})</Text>
             )}
@@ -273,6 +344,55 @@ const ProfileScreen = ({ navigation }) => {
                     </View>
                 </View>
             </Modal>
+
+            {/* Sound Picker Modal */}
+            <Modal visible={showSoundPicker} transparent animationType="slide">
+                <View style={[styles.modalOverlay, { backgroundColor: colors.modalOverlay }]}>
+                    <View style={[styles.modalContent, { backgroundColor: colors.modalBg }]}>
+                        <TouchableOpacity style={styles.uploadButton} onPress={handleUploadSound} activeOpacity={0.7}>
+                            <View style={[styles.uploadIcon, { backgroundColor: colors.inputBg }]}>
+                                <Text style={styles.uploadIconText}>📁</Text>
+                            </View>
+                            <Text style={[styles.uploadLabel, { color: colors.textSecondary }]}>Upload from Device</Text>
+                        </TouchableOpacity>
+
+                        {customSoundName && selectedSoundKey === 'custom' && (
+                            <View style={[styles.customSoundRow, { backgroundColor: colors.inputBg, borderColor: colors.buttonBg }]}>
+                                <Text style={styles.customSoundIcon}>🎵</Text>
+                                <Text style={[styles.customSoundName, { color: colors.text }]} numberOfLines={1}>{customSoundName}</Text>
+                                <Text style={[styles.customSoundCheck, { color: colors.buttonBg }]}>✓</Text>
+                            </View>
+                        )}
+
+                        <View style={[styles.modalDivider, { backgroundColor: colors.divider }]} />
+
+                        <Text style={[styles.modalTitle, { color: colors.textMuted }]}>Or pick a default sound:</Text>
+                        <View style={styles.soundGrid}>
+                            {REMINDER_SOUNDS.map((sound) => (
+                                <TouchableOpacity
+                                    key={sound.key}
+                                    style={[
+                                        styles.soundOption,
+                                        { backgroundColor: colors.inputBg },
+                                        selectedSoundKey === sound.key && { borderWidth: 2, borderColor: colors.buttonBg },
+                                    ]}
+                                    onPress={() => handleSoundSelect(sound.key)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={styles.soundOptionIcon}>{sound.icon}</Text>
+                                    <Text style={[styles.soundOptionLabel, { color: colors.text }]} numberOfLines={1}>{sound.label}</Text>
+                                    {selectedSoundKey === sound.key && (
+                                        <Text style={[styles.soundCheck, { color: colors.buttonBg }]}>✓</Text>
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                        <TouchableOpacity style={styles.modalClose} onPress={() => setShowSoundPicker(false)}>
+                            <Text style={[styles.modalCloseText, { color: colors.textMuted }]}>Cancel</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -320,6 +440,23 @@ const styles = StyleSheet.create({
     avatarOptionText: { fontSize: 26 },
     modalClose: { marginTop: 16, alignItems: 'center', paddingVertical: 10 },
     modalCloseText: { fontSize: 15, fontWeight: '600' },
+    // Sound section
+    soundSection: { borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, elevation: 1 },
+    soundSectionRow: { flexDirection: 'row', alignItems: 'center' },
+    soundSectionIcon: { fontSize: 22, marginRight: 12 },
+    soundSectionText: { flex: 1 },
+    soundSectionTitle: { fontSize: 15, fontWeight: '600' },
+    soundSectionValue: { fontSize: 13, marginTop: 2 },
+    soundChevron: { fontSize: 22, fontWeight: '300' },
+    soundGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
+    soundOption: { width: '45%', borderRadius: 12, padding: 14, margin: 6, alignItems: 'center' },
+    soundOptionIcon: { fontSize: 24, marginBottom: 4 },
+    soundOptionLabel: { fontSize: 13, fontWeight: '500', textAlign: 'center' },
+    soundCheck: { fontSize: 16, fontWeight: '700', marginTop: 4 },
+    customSoundRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, padding: 12, marginTop: 8, borderWidth: 2 },
+    customSoundIcon: { fontSize: 18, marginRight: 10 },
+    customSoundName: { flex: 1, fontSize: 14, fontWeight: '500' },
+    customSoundCheck: { fontSize: 16, fontWeight: '700' },
 });
 
 export default ProfileScreen;
