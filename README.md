@@ -78,18 +78,30 @@ git clone https://github.com/saikiran-1508/Chronicle.git
 cd Chronicle
 ```
 
-### 2. Install Frontend Dependencies
+### 2. Backend Setup
+1. Navigate to the backend folder:
+   ```bash
+   cd backend
+   ```
+2. Install Python dependencies:
+   ```bash
+   pip install flask flask-cors groq python-dotenv
+   ```
+3. **Configure API Key**:
+   - Create a file named `.env` in the `backend` folder.
+   - Add your Groq API key:
+     ```
+     GROQ_API_KEY=gsk_your_key_here
+     ```
+4. Run the backend:
+   ```bash
+   python app.py
+   ```
+
+### 3. Install Frontend Dependencies
 
 ```bash
 npm install
-```
-
-### 3. Install Backend Dependencies
-
-```bash
-cd backend
-pip install -r requirements.txt
-cd ..
 ```
 
 ### 4. Configure Firebase
