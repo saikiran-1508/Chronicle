@@ -1,157 +1,97 @@
-# Task Tracker with Progress Notes
+This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-A full-stack mobile application built with **React Native CLI** and **Flask**. Users can manage tasks and track progress by adding timestamped notes to each task.
+# Getting Started
 
-## Project Structure
+> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
-```
-internapp/
-├── backend/
-│   ├── app.py                  # Flask API server (all endpoints)
-│   └── requirements.txt        # Python dependencies
-├── mobile/
-│   ├── index.js                # RN CLI entry point
-│   ├── App.js                  # Root component & navigation setup
-│   ├── app.json                # App name configuration
-│   ├── package.json            # Node dependencies
-│   ├── babel.config.js
-│   ├── metro.config.js         # Metro bundler config
-│   └── src/
-│       ├── services/
-│       │   └── api.js          # Axios HTTP client & API functions
-│       ├── screens/
-│       │   ├── TaskListScreen.js      # Screen 1 — list all tasks
-│       │   ├── TaskDetailScreen.js    # Screen 2 — task info + notes
-│       │   ├── AddNoteScreen.js       # Screen 3 — add progress note
-│       │   └── CreateTaskScreen.js    # Bonus  — create new task
-│       └── components/
-│           ├── LoadingState.js  # Reusable loading spinner
-│           ├── ErrorState.js    # Reusable error + retry
-│           ├── StatusBadge.js   # Status chip (pending/in-progress/completed)
-│           └── EmptyState.js    # Empty list placeholder
-└── README.md
-```
+## Step 1: Start Metro
 
-## Features
+First, you will need to run **Metro**, the JavaScript build tool for React Native.
 
-| Screen | Description |
-|--------|-------------|
-| **Task List** | Displays all tasks with status badge, latest note preview, and note count. Pull-to-refresh supported. |
-| **Task Detail** | Shows full task details and all progress notes in chronological order. |
-| **Add Note** | Multiline text input for adding a progress note. Optional checkbox to mark the task as complete. |
-| **Create Task** | Form to create a new task with title and description. |
+To start the Metro dev server, run the following command from the root of your React Native project:
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Mobile App | React Native CLI |
-| Navigation | React Navigation (Native Stack) |
-| HTTP Client | Axios |
-| Backend | Flask (Python) |
-| Data Store | In-memory (Python dicts) |
-| CORS | flask-cors |
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- **Python 3.9+** — for the Flask backend
-- **Node.js 18+** and **npm** — for the React Native app
-- **Android Studio** (for Android) or **Xcode** (for iOS) — with an emulator configured
-- React Native CLI environment set up ([official guide](https://reactnative.dev/docs/set-up-your-environment))
-
-### 1. Start the Flask Backend
-
-```bash
-cd backend
-
-# Create a virtual environment (recommended)
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS / Linux
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the server
-python app.py
-```
-
-The API will be available at **http://localhost:5000**. Five sample tasks with notes are seeded automatically.
-
-### 2. Start the React Native App
-
-```bash
-cd mobile
-
-# Install dependencies
-npm install
-
-# Start Metro bundler
+```sh
+# Using npm
 npm start
 
-# In a separate terminal — run on Android
+# OR using Yarn
+yarn start
+```
+
+## Step 2: Build and run your app
+
+With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+
+### Android
+
+```sh
+# Using npm
 npm run android
 
-# Or run on iOS (macOS only)
+# OR using Yarn
+yarn android
+```
+
+### iOS
+
+For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+
+The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+
+```sh
+bundle install
+```
+
+Then, and every time you update your native dependencies, run:
+
+```sh
+bundle exec pod install
+```
+
+For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+
+```sh
+# Using npm
 npm run ios
+
+# OR using Yarn
+yarn ios
 ```
 
-> **Note for physical devices:** Open `src/services/api.js` and change `BASE_URL` to your computer's local IP address (e.g. `http://192.168.1.42:5000`).
+If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
 
----
+This is one way to run your app — you can also build it directly from Android Studio or Xcode.
 
-## API Reference
+## Step 3: Modify your app
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/tasks` | List all tasks (includes `notesCount`, `latestNote`) |
-| `GET` | `/tasks/:id` | Get single task details |
-| `POST` | `/tasks` | Create a new task (`{ title, description? }`) |
-| `PATCH` | `/tasks/:id` | Update task fields (`{ status?, title?, description? }`) |
-| `GET` | `/tasks/:id/notes` | List all notes for a task |
-| `POST` | `/tasks/:id/notes` | Add a note (`{ content, markComplete? }`) |
+Now that you have successfully run the app, let's make changes!
 
-### Status values
+Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
 
-`pending` · `in-progress` · `completed`
+When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
 
----
+- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
+- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
 
-## Data Models
+## Congratulations! :tada:
 
-**Task**
-```json
-{
-  "id": "uuid",
-  "title": "string",
-  "description": "string",
-  "status": "pending | in-progress | completed",
-  "createdAt": "ISO 8601",
-  "notesCount": 0,
-  "latestNote": "string | null"
-}
-```
+You've successfully run and modified your React Native App. :partying_face:
 
-**Note**
-```json
-{
-  "id": "uuid",
-  "taskId": "uuid",
-  "content": "string",
-  "createdAt": "ISO 8601"
-}
-```
+### Now what?
 
----
+- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
+- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
 
-## Key Design Decisions
+# Troubleshooting
 
-1. **In-memory storage** — Keeps the backend simple with no database setup. Data resets on server restart; seed data is loaded on boot.
-2. **Centralised API layer** — All HTTP calls go through `src/services/api.js` so screens never import Axios directly.
-3. **Reusable components** — `LoadingState`, `ErrorState`, `StatusBadge`, and `EmptyState` are shared across screens.
-4. **Pull-to-refresh & focus-reload** — Task list and detail screens re-fetch data when the screen regains focus, keeping data fresh.
-5. **Platform-aware base URL** — Android emulator uses `10.0.2.2` to reach host localhost; iOS/web use `localhost` directly.
+If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+
+# Learn More
+
+To learn more about React Native, take a look at the following resources:
+
+- [React Native Website](https://reactnative.dev) - learn more about React Native.
+- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
+- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
+- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
+- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.

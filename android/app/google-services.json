@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "97836662560",
+    "project_id": "chronicle-cb755",
+    "storage_bucket": "chronicle-cb755.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:97836662560:android:a382d8cfe49e5398182145",
+        "android_client_info": {
+          "package_name": "com.example.chronicle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "97836662560-nibrtm1u5ct2it9b5cfi9q8li65vp23k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chronicle",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "97836662560-2e64ulgdq1dri43qivgcr40vppbiga6a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCawkhvZ4n3UpChtDgQp2U6NdicPfLDdEI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "97836662560-2e64ulgdq1dri43qivgcr40vppbiga6a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
