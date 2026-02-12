@@ -79,10 +79,11 @@ export const setCustomSoundUri = async (uri) => {
 
 /**
  * Schedule a local notification at the given start time.
+ * Checks and requests notification permission before scheduling.
  * @param {string} taskId - Unique task ID (used as notification ID)
  * @param {string} taskTitle - Task title for notification content
  * @param {string} startTimeISO - ISO date string for when to fire the notification
- * @returns {boolean} true if scheduled, false if time is in the past
+ * @returns {boolean} true if scheduled, false if time is in the past or permission denied
  */
 export const scheduleReminder = async (taskId, taskTitle, startTimeISO) => {
     const notifDate = new Date(startTimeISO);
@@ -92,6 +93,17 @@ export const scheduleReminder = async (taskId, taskTitle, startTimeISO) => {
     if (notifDate <= now) {
         console.log('Reminder time is in the past, skipping schedule.');
         return false;
+    }
+
+    // Check and request notification permission
+    try {
+        const settings = await notifee.requestPermission();
+        if (settings.authorizationStatus === 0) { // DENIED
+            console.log('Notification permission denied — cannot schedule reminder.');
+            return false;
+        }
+    } catch (e) {
+        console.warn('Failed to check notification permission:', e);
     }
 
     // Ensure channel exists

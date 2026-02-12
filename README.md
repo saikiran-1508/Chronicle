@@ -215,6 +215,7 @@ Chronicle/
 | `POST` | `/tasks/:id/notes` | Add a progress note |
 | `POST` | `/tasks/:id/ai-recommend` | Get AI recommendations |
 | `POST` | `/chat` | AI chat with task context |
+| `DELETE` | `/tasks/:id` | Delete a task and its notes |
 | `GET` | `/profile` | Get user profile with stats |
 | `POST` | `/profile` | Update profile (name, avatar, reminderSound) |
 
@@ -228,6 +229,63 @@ Chronicle/
 4. **Task Detail** → View progress, set reminders, get AI insights, add notes
 5. **AI Chat** → Get productivity advice with full task context
 6. **Profile** → Edit avatar, view stats, configure reminder sounds
+
+---
+
+## 🔧 Troubleshooting
+
+### Network Error / Cannot Connect to Backend
+
+If the app shows a **"Network Error"** or tasks fail to load, follow these steps in order:
+
+#### ✅ Quick Fix (Physical Device via USB)
+
+Open a terminal and run these commands:
+
+```bash
+# Step 1 — Start the backend server
+cd backend
+python app.py
+
+# Step 2 — In a NEW terminal, forward port 5000 from phone to PC
+adb reverse tcp:5000 tcp:5000
+
+# Step 3 — In a NEW terminal, start the React Native app
+npx react-native start
+```
+
+> **⚠️ Important:** You must run `adb reverse tcp:5000 tcp:5000` **every time** you reconnect your phone or restart the app. Without this, the phone cannot reach `localhost:5000` on your computer.
+
+#### Verify the Backend is Running
+
+Test that the backend responds:
+```bash
+# Windows PowerShell
+Invoke-WebRequest -Uri "http://localhost:5000/tasks" -UseBasicParsing
+
+# Mac/Linux
+curl http://localhost:5000/tasks
+```
+You should see `[]` (empty list) or your tasks as JSON.
+
+#### Alternative Configurations
+
+| Setup | `BASE_URL` in `src/services/api.js` | Notes |
+|-------|--------------------------------------|-------|
+| **Physical device (USB)** | `http://localhost:5000` | Requires `adb reverse tcp:5000 tcp:5000` |
+| **Android Emulator** | `http://10.0.2.2:5000` | Maps to host machine automatically |
+| **Same Wi-Fi (LAN)** | `http://192.168.x.x:5000` | Replace with your PC's IP (`ipconfig` to find it) |
+
+#### Still Not Working?
+
+1. **Check Firewall** — Ensure port 5000 is not blocked by your firewall or antivirus
+2. **Check ADB** — Run `adb devices` to confirm your phone is connected
+3. **Restart Metro** — Close the Metro bundler and run `npx react-native start --reset-cache`
+4. **Rebuild the app** — Run `npx react-native run-android` again
+
+### Data Resets on Backend Restart
+
+The backend uses **in-memory storage**. All tasks and notes are lost when the server is restarted. This is expected behavior for the development server. For production, integrate a persistent database (SQLite, PostgreSQL, etc.).
 
 ---
 

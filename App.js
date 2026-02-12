@@ -4,10 +4,11 @@
  * Auth stack (SignIn/SignUp) or Main stack (tasks, chat, profile).
  */
 
-import React from 'react';
-import { TouchableOpacity, Text, View, StatusBar, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { TouchableOpacity, Text, View, StatusBar, ActivityIndicator, StyleSheet, Platform, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import notifee, { AuthorizationStatus } from '@notifee/react-native';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -23,6 +24,20 @@ import ProfileScreen from './src/screens/ProfileScreen';
 
 const AuthStack = createNativeStackNavigator();
 const MainStack = createNativeStackNavigator();
+
+// ── Request notification permissions on app start ───────────────────────────
+async function requestNotificationPermission() {
+    try {
+        const settings = await notifee.requestPermission();
+        if (settings.authorizationStatus === AuthorizationStatus.DENIED) {
+            console.log('Notification permission denied by user.');
+        } else {
+            console.log('Notification permission granted.');
+        }
+    } catch (e) {
+        console.warn('Failed to request notification permission:', e);
+    }
+}
 
 function AuthNavigator() {
     const { colors } = useTheme();
@@ -145,6 +160,11 @@ function RootNavigator() {
 }
 
 export default function App() {
+    // Request notification permission when the app starts
+    useEffect(() => {
+        requestNotificationPermission();
+    }, []);
+
     return (
         <>
             <StatusBar barStyle="light-content" backgroundColor="#000000" />

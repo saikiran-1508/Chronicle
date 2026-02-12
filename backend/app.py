@@ -27,79 +27,7 @@ profile: dict = {
 chat_history: list[dict] = []
 
 
-def seed_data():
-    """Populate the store with sample tasks and notes for demo purposes."""
-    sample_tasks = [
-        {
-            "title": "Design Login Screen",
-            "description": "Create wireframes and final UI design for the login screen including email/password fields, social login buttons, and forgot password link.",
-            "status": "in-progress",
-        },
-        {
-            "title": "Set Up CI/CD Pipeline",
-            "description": "Configure GitHub Actions for automated testing and deployment to staging environment.",
-            "status": "pending",
-        },
-        {
-            "title": "Write Unit Tests for Auth Module",
-            "description": "Achieve at least 80% code coverage for the authentication module including login, signup, and token refresh flows.",
-            "status": "completed",
-        },
-        {
-            "title": "Implement Push Notifications",
-            "description": "Integrate Firebase Cloud Messaging for push notifications on both iOS and Android platforms.",
-            "status": "pending",
-        },
-        {
-            "title": "API Rate Limiting",
-            "description": "Add rate limiting middleware to protect API endpoints from abuse. Configure limits per user and per IP.",
-            "status": "in-progress",
-        },
-    ]
 
-    sample_notes = {
-        0: [
-            "Started working on the wireframes using Figma. Initial layout drafted.",
-            "Completed mobile-first wireframe. Moving on to tablet and desktop breakpoints.",
-            "Received feedback from the design team. Need to revise the color palette.",
-        ],
-        1: [
-            "Researched GitHub Actions vs GitLab CI. Going with GitHub Actions.",
-        ],
-        2: [
-            "Wrote tests for login and signup flows.",
-            "Added edge case tests for token expiry and refresh.",
-            "All tests passing. Coverage at 87%.",
-        ],
-        4: [
-            "Reviewing express-rate-limit package documentation.",
-            "Implemented basic rate limiting — 100 requests per 15 minutes per IP.",
-        ],
-    }
-
-    for i, t in enumerate(sample_tasks):
-        task_id = str(uuid.uuid4())
-        tasks[task_id] = {
-            "id": task_id,
-            "title": t["title"],
-            "description": t["description"],
-            "status": t["status"],
-            "createdAt": datetime.now(timezone.utc).isoformat(),
-            "startTime": t.get("startTime"),
-            "finishBy": t.get("finishBy"),
-            "dueDate": None,
-            "reminderEnabled": False,
-        }
-
-        if i in sample_notes:
-            for note_text in sample_notes[i]:
-                note_id = str(uuid.uuid4())
-                notes[note_id] = {
-                    "id": note_id,
-                    "taskId": task_id,
-                    "content": note_text,
-                    "createdAt": datetime.now(timezone.utc).isoformat(),
-                }
 
 
 # ---------------------------------------------------------------------------
@@ -253,6 +181,22 @@ def update_task(task_id: str):
     return jsonify(enrich_task(task))
 
 
+@app.route("/tasks/<task_id>", methods=["DELETE"])
+def delete_task(task_id: str):
+    """Delete a task and all its associated notes."""
+    task = tasks.get(task_id)
+    if not task:
+        return make_error("Task not found", 404)
+
+    # Remove all notes for this task
+    note_ids_to_remove = [nid for nid, n in notes.items() if n["taskId"] == task_id]
+    for nid in note_ids_to_remove:
+        del notes[nid]
+
+    del tasks[task_id]
+    return jsonify({"message": "Task deleted"}), 200
+
+
 # ---------------------------------------------------------------------------
 # Notes Routes
 # ---------------------------------------------------------------------------
@@ -369,7 +313,7 @@ def update_profile():
 # App entry-point
 # ---------------------------------------------------------------------------
 
-seed_data()
+# No seed data — app starts with an empty task list
 
 if __name__ == "__main__":
     print("\n  Task Tracker API running at http://localhost:5000\n")

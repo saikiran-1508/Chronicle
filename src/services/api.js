@@ -6,8 +6,10 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
 
-// Using localhost — works on physical devices via 'adb reverse tcp:5000 tcp:5000'
-// For emulators without adb reverse: use 'http://10.0.2.2:5000'
+// ── Backend URL Configuration ───────────────────────────────────────────────
+// Physical device via USB:  Run 'adb reverse tcp:5000 tcp:5000', then use localhost
+// Android emulator:         Use 'http://10.0.2.2:5000' (maps to host machine)
+// Same Wi-Fi (LAN):         Use 'http://<your-pc-ip>:5000' (e.g. 192.168.x.x)
 const BASE_URL = 'http://localhost:5000';
 
 const api = axios.create({
@@ -40,6 +42,12 @@ export const createTask = async ({ title, description, status, startTime, finish
 /** Update a task (status, title, description, dueDate, reminderEnabled). */
 export const updateTask = async (taskId, updates) => {
     const { data } = await api.patch(`/tasks/${taskId}`, updates);
+    return data;
+};
+
+/** Delete a task and its associated notes. */
+export const deleteTask = async (taskId) => {
+    const { data } = await api.delete(`/tasks/${taskId}`);
     return data;
 };
 
