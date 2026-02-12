@@ -11,7 +11,7 @@ import urllib.error
 # ── Configuration ────────────────────────────────────────────────────────────
 # Set your Gemini API key here or via environment variable
 # Get a free key at https://aistudio.google.com/app/apikey
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "blank")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyAzKRISa_GHXCP8kfm0OyqOEzWY64YcDOY")
 GEMINI_MODEL = "gemini-2.5-flash"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
